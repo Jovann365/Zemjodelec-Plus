@@ -1,0 +1,12 @@
+{
+    "temperature_now": "3.2\u00b0C",
+    "relative_humidity_now": "93%",
+    "wind_speed_now": "3.1km/h",
+    "temperature_min": "1.1\u00b0C",
+    "temperature_max": "11.8\u00b0C",
+    "rain_last_7d": "32.4mm",
+    "rain_next_7d": "8.5mm",
+    "et0_fao_evapotranspiration": "1.22mm",
+    "soil_temperature": "5.9\u00b0C",
+    "soil_moisture": "0.276m\u00b3/m\u00b3"
+}
