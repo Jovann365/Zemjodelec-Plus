@@ -39,3 +39,4 @@ def get_weather_data(latitude, longitude):
         "soil_temperature": f"{hourly["soil_temperature_6cm"][hour_index]}{hourly_units["soil_temperature_6cm"]}",
         "soil_moisture": f"{hourly["soil_moisture_3_to_9cm"][hour_index]}{hourly_units["soil_moisture_3_to_9cm"]}",
     }
+
