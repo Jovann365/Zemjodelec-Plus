@@ -2,7 +2,8 @@ import os
 import requests
 import json
 from dotenv import load_dotenv
-
+import rasterio
+from rasterio.warp import transform
 from requests.structures import CaseInsensitiveDict
 
 load_dotenv(".env")
@@ -77,3 +78,23 @@ def get_geographical_data(latitude, longitude):
         "state": data["features"][0]["properties"]["state"],
         "city": data["features"][0]["properties"]["city"]
     }
+
+
+def get_soil_data(latitude, longitude):
+    url_base = "https://files.isric.org/soilgrids/latest/data"
+    props = {
+    "clay": 10, "sand": 10, "silt": 10,
+    "phh2o": 10, "soc": 10, "cec": 10, "nitrogen": 100,
+    }
+
+    soil = {}
+    for prop, factor in props.items():
+        url = f"/vsicurl/{url_base}/{prop}/{prop}_5-15cm_mean.vrt"
+        with rasterio.open(url) as src:
+            xs, ys = transform("EPSG:4326", src.crs, [longitude], [latitude])
+            value = next(src.sample([(xs[0], ys[0])]))[0]
+            soil[prop] = None if value == src.nodata else round(value / factor, 1)
+    return soil
+
+
+
