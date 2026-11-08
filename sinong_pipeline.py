@@ -1,3 +1,4 @@
+import datetime
 import os
 import requests
 import json
@@ -87,13 +88,32 @@ def get_soil_data(latitude, longitude):
     "phh2o": 10, "soc": 10, "cec": 10, "nitrogen": 100,
     }
 
+    cache_key = f"{latitude},{longitude}"
+
+    try:
+        with open("soil_data_cache.json", "r") as cache_file:
+            _cache = json.load(cache_file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        _cache = {}
+
+    if cache_key in _cache:
+        return _cache.get(f"{latitude},{longitude}")["soil"]
+
     soil = {}
     for prop, factor in props.items():
         url = f"/vsicurl/{url_base}/{prop}/{prop}_5-15cm_mean.vrt"
         with rasterio.open(url) as src:
             xs, ys = transform("EPSG:4326", src.crs, [longitude], [latitude])
             value = next(src.sample([(xs[0], ys[0])]))[0]
-            soil[prop] = None if value == src.nodata else round(value / factor, 1)
+            soil[prop] = None if value == src.nodata else round(float(value) / factor, 1)
+
+    _cache[cache_key] = {
+        "date_created": datetime.datetime.now().isoformat(timespec="seconds"),
+        "soil": soil
+    }
+    with open("soil_data_cache.json", "w", encoding="utf-8") as cache_file:
+        json.dump(_cache, cache_file, indent=4)
+
     return soil
 
 
