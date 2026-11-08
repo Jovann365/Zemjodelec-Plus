@@ -1,5 +1,11 @@
+import os
 import requests
 import json
+from dotenv import load_dotenv
+
+from requests.structures import CaseInsensitiveDict
+
+load_dotenv(".env")
 
 def get_weather_data(latitude, longitude):
     res = requests.get("https://api.open-meteo.com/v1/forecast", params={
@@ -28,15 +34,46 @@ def get_weather_data(latitude, longitude):
         return round(sum(v for v in values if v is not None), 1)
 
     return {
-        "temperature_now": f"{current["temperature_2m"]}{current_units["temperature_2m"]}",
-        "relative_humidity_now": f"{current["relative_humidity_2m"]}{current_units["relative_humidity_2m"]}",
-        "wind_speed_now": f"{current["wind_speed_10m"]}{current_units["wind_speed_10m"]}",
-        "temperature_min": f"{daily["temperature_2m_min"][today]}{daily_units["temperature_2m_min"]}",
-        "temperature_max": f"{daily["temperature_2m_max"][today]}{daily_units["temperature_2m_max"]}",
-        "rain_last_7d": f"{total(daily["precipitation_sum"][:today])}{daily_units["precipitation_sum"]}",
-        "rain_next_7d": f"{total(daily["precipitation_sum"][today+1:])}{daily_units["precipitation_sum"]}",
-        "et0_fao_evapotranspiration": f"{daily["et0_fao_evapotranspiration"][today]}{daily_units["et0_fao_evapotranspiration"]}",
-        "soil_temperature": f"{hourly["soil_temperature_6cm"][hour_index]}{hourly_units["soil_temperature_6cm"]}",
-        "soil_moisture": f"{hourly["soil_moisture_3_to_9cm"][hour_index]}{hourly_units["soil_moisture_3_to_9cm"]}",
+        "temperature_now": current["temperature_2m"],
+        "temperature_unit": current_units["temperature_2m"],
+        "relative_humidity_now": current["relative_humidity_2m"],
+        "relative_humidity_unit": current_units["relative_humidity_2m"],
+        "wind_speed_now": current["wind_speed_10m"],
+        "wind_speed_unit": current_units["wind_speed_10m"],
+        "temperature_min_today": daily["temperature_2m_min"][today],
+        "temperature_max_today": daily["temperature_2m_max"][today],
+        "lowest_temp_next_7d": min(daily["temperature_2m_min"][today+1:]),
+        "rain_last_7d": total(daily["precipitation_sum"][:today]),
+        "rain_next_7d": total(daily["precipitation_sum"][today+1:]),
+        "rain_unit": daily_units["precipitation_sum"],
+        "evaporation_today": daily["et0_fao_evapotranspiration"][today],
+        "evaporation_unit": daily_units["et0_fao_evapotranspiration"],
+        "soil_temperature_6cm": hourly["soil_temperature_6cm"][hour_index],
+        "soil_temperature_unit": hourly_units["soil_temperature_6cm"],
+        "soil_moisture_3_9cm": hourly["soil_moisture_3_to_9cm"][hour_index],
+        "soil_moisture_unit": hourly_units["soil_moisture_3_to_9cm"],
+        "elevation": data["elevation"]
     }
 
+
+def get_geographical_data(latitude, longitude):
+    url = "https://api.geoapify.com/v1/geocode/reverse"
+
+    headers = CaseInsensitiveDict()
+    headers["Accept"] = "application/json"
+
+    response = requests.get(url, headers=headers, params={
+        "lat": latitude,
+        "lon": longitude,
+        "apiKey": os.getenv("GEO_API_KEY")
+    })
+
+    response.raise_for_status()
+    data = response.json()
+
+
+    return {
+        "country": data["features"][0]["properties"]["country"],
+        "state": data["features"][0]["properties"]["state"],
+        "city": data["features"][0]["properties"]["city"]
+    }
