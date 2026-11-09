@@ -48,8 +48,8 @@ def get_weather_data(latitude, longitude):
         "rain_last_7d": total(daily["precipitation_sum"][:today]),
         "rain_next_7d": total(daily["precipitation_sum"][today+1:]),
         "rain_unit": daily_units["precipitation_sum"],
-        "evaporation_today": daily["et0_fao_evapotranspiration"][today],
-        "evaporation_unit": daily_units["et0_fao_evapotranspiration"],
+        "et0_last_7d": total(daily["et0_fao_evapotranspiration"][:today]),
+        "et0_unit": daily_units["et0_fao_evapotranspiration"],
         "soil_temperature_6cm": hourly["soil_temperature_6cm"][hour_index],
         "soil_temperature_unit": hourly_units["soil_temperature_6cm"],
         "soil_moisture_3_9cm": hourly["soil_moisture_3_to_9cm"][hour_index],
@@ -75,9 +75,9 @@ def get_geographical_data(latitude, longitude):
 
 
     return {
-        "country": data["features"][0]["properties"]["country"],
-        "state": data["features"][0]["properties"]["state"],
-        "city": data["features"][0]["properties"]["city"]
+        "country": data["features"][0]["properties"].get("country"),
+        "county": data["features"][0]["properties"].get("county"),
+        "city": data["features"][0]["properties"].get("city")
     }
 
 
@@ -97,7 +97,10 @@ def get_soil_data(latitude, longitude):
         _cache = {}
 
     if cache_key in _cache:
-        return _cache.get(f"{latitude},{longitude}")["soil"]
+
+        if (datetime.datetime.now() - datetime.datetime.fromisoformat(_cache[cache_key]["date_created"])
+                < datetime.timedelta(days=365)):
+            return _cache[cache_key]["soil"]
 
     soil = {}
     for prop, factor in props.items():
@@ -116,5 +119,4 @@ def get_soil_data(latitude, longitude):
 
     return soil
 
-
-
+print(get_weather_data(40,20))

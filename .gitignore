@@ -1,2 +1,2 @@
-.env
-soil_data_cache.json
+sinong_service/.env
+sinong_service/soil_data_cache.json
