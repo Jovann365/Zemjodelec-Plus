@@ -2,6 +2,20 @@ from datetime import date
 
 from sinong_service.fetch_data import get_soil_data, get_weather_data
 
+SYSTEM_PROMPT = """You are an agronomy advisor for farmers in North Macedonia and the Balkans.
+
+Rules:
+- Base your advice on the location, farm, weather and soil data provided.
+- Values marked "estimate" are approximate; farmer and lab values are more reliable.
+- If important information is missing (e.g. the crop), say what is missing and keep the advice general.
+- Do not give exact fertilizer or pesticide doses unless soil test data is provided; recommend a soil test instead.
+- Be practical and concise. Farmers need clear actions, not theory.
+
+Answer structure:
+1. Situation – what the data shows that is relevant to the question
+2. Recommended actions – concrete steps
+3. What to monitor – signs to watch in the coming days"""
+
 
 def format_location(geographical_data, elevation):
     parts = [geographical_data.get("city"), geographical_data.get("county"), geographical_data.get("country")]
@@ -66,3 +80,50 @@ def format_soil(soil_data, weather, override=None):
         lines.append(f"- Drainage: {override['drainage']} (farmer report)")
 
     return "\n".join(lines)
+
+
+def format_farm_data(farm_info):
+    labels = {
+        "crop": 'Crop',
+        'growth_stage': "Growth stage",
+        'planting_date': "Planting date",
+        'setup': "Growing Setup",
+        'irrigation': "Irrigation",
+        'previous_crop': "Previous crop",
+        'recent_treatments': "Recent treatments",
+        'symptoms': "Symptoms"
+    }
+
+    lines = ["## Farm"]
+
+    for key, val in labels.items():
+        if farm_info.get(key) is not None:
+            lines.append(f"- {val}: {farm_info.get(key)}")
+
+    if len(lines) == 1:
+        lines.append("No farm info provided.")
+
+    return "\n".join(lines)
+
+def build_message(question, geographical_dataa, soil_data, weather_data,
+                  farm_info = None, soil_override = None, history = None):
+
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+
+    if history:
+        messages += history
+        messages.append({"role": "user", "content": question})
+        return messages
+
+    parts = [
+        format_location(geographical_dataa, weather_data.get('elevation')),
+        format_farm_data(farm_info or {}),
+        format_weather(weather_data),
+        format_soil(soil_data, weather_data, soil_override),
+        f"## Question: {question}",
+    ]
+
+    user_prompt = "\n\n".join(parts)
+    messages.append({"role": "user", "content": user_prompt})
+
+    return messages
