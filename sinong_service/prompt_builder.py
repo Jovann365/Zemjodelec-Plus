@@ -1,7 +1,5 @@
 from datetime import date
 
-from sinong_service.fetch_data import get_soil_data, get_weather_data
-
 SYSTEM_PROMPT = """You are an agronomy advisor for farmers in North Macedonia and the Balkans.
 
 Rules:
