@@ -13,7 +13,9 @@ Rules:
 Answer structure:
 1. Situation – what the data shows that is relevant to the question
 2. Recommended actions – concrete steps
-3. What to monitor – signs to watch in the coming days"""
+3. What to monitor – signs to watch in the coming days
+
+Only give answers in English."""
 
 
 def format_location(geographical_data, elevation):
