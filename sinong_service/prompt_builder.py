@@ -4,7 +4,7 @@ SYSTEM_PROMPT = """You are an agronomy advisor for farmers in North Macedonia an
 
 Rules:
 - Base your advice on the location, farm, weather and soil data provided.
-- Give answers based on the season - current and a couple weeks in the future. 
+- Consider the current date and season. Only recommend actions that are possible now or in the next few weeks
 - Values marked "estimate" are approximate; farmer and lab values are more reliable.
 - If important information is missing (e.g. the crop), say what is missing and keep the advice general.
 - Do not give exact fertilizer or pesticide doses unless soil test data is provided; recommend a soil test instead.
@@ -13,9 +13,7 @@ Rules:
 Answer structure:
 1. Situation – what the data shows that is relevant to the question
 2. Recommended actions – concrete steps
-3. What to monitor – signs to watch in the coming days
-
-Only give answers in English."""
+3. What to monitor – signs to watch in the coming days"""
 
 
 def format_location(geographical_data, elevation):
@@ -114,9 +112,9 @@ def build_message(question, geographical_dataa, soil_data, weather_data,
     if history:
         messages += history
         if think:
-            messages.append({"role": "user", "content": question})
+            messages.append({"role": "user", "content": question +  "Give your final answer only in English." })
         else:
-            messages.append({"role": "user", "content": question + " /no_think"})
+            messages.append({"role": "user", "content": question + "Give your final answer only in English." + " /no_think"})
         return messages
 
     parts = [
@@ -129,8 +127,8 @@ def build_message(question, geographical_dataa, soil_data, weather_data,
 
     user_prompt = "\n\n".join(parts)
     if think:
-        messages.append({"role": "user", "content": user_prompt})
+        messages.append({"role": "user", "content": user_prompt +  "Give your final answer only in English." })
     else:
-        messages.append({"role": "user", "content": user_prompt + " /no_think"})
+        messages.append({"role": "user", "content": user_prompt + " /no_think" +  "Give your final answer only in English." })
 
     return messages
