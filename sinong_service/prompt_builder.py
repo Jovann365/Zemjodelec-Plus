@@ -4,6 +4,7 @@ SYSTEM_PROMPT = """You are an agronomy advisor for farmers in North Macedonia an
 
 Rules:
 - Base your advice on the location, farm, weather and soil data provided.
+- Give answers based on the season - current and a couple weeks in the future. 
 - Values marked "estimate" are approximate; farmer and lab values are more reliable.
 - If important information is missing (e.g. the crop), say what is missing and keep the advice general.
 - Do not give exact fertilizer or pesticide doses unless soil test data is provided; recommend a soil test instead.
@@ -104,13 +105,16 @@ def format_farm_data(farm_info):
     return "\n".join(lines)
 
 def build_message(question, geographical_dataa, soil_data, weather_data,
-                  farm_info = None, soil_override = None, history = None):
+                  farm_info = None, soil_override = None, history = None, think=False):
 
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
     if history:
         messages += history
-        messages.append({"role": "user", "content": question})
+        if think:
+            messages.append({"role": "user", "content": question})
+        else:
+            messages.append({"role": "user", "content": question + " /no_think"})
         return messages
 
     parts = [
@@ -122,6 +126,9 @@ def build_message(question, geographical_dataa, soil_data, weather_data,
     ]
 
     user_prompt = "\n\n".join(parts)
-    messages.append({"role": "user", "content": user_prompt})
+    if think:
+        messages.append({"role": "user", "content": user_prompt})
+    else:
+        messages.append({"role": "user", "content": user_prompt + " /no_think"})
 
     return messages

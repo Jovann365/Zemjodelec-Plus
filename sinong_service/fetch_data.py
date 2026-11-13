@@ -119,4 +119,3 @@ def get_soil_data(latitude, longitude):
 
     return soil
 
-print(get_weather_data(40,20))

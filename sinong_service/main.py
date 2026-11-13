@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fetch_data import get_weather_data, get_soil_data, get_geographical_data
 from models import *
 from prompt_builder import build_message
-
+from sinong_ollama import ask_sinong
 
 # run command - uvicorn main:app --port 8001 --reload
 app = FastAPI(title="Sinong Service")
@@ -30,9 +30,9 @@ def ask(request: AskRequest):
     messages = build_message(question=request.question, geographical_dataa=geographical, weather_data=weather,
                              soil_data=soil, farm_info=request.farm.model_dump() if request.farm else None ,
                              soil_override=request.soil_override.model_dump() if request.soil_override else None,
-                             history=history)
+                             history=history, think=request.think)
 
-    answer = messages[-1]["content"]
+    answer = ask_sinong(messages)
 
     return AskResponse(
         answer=answer,

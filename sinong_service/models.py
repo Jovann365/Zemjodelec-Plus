@@ -32,6 +32,7 @@ class AskRequest(BaseModel):
     farm: Optional[FarmInfo] = None
     soil_override: Optional[SoilOverride] = None
     history: list[Message] = Field(default_factory=list, max_length=10)
+    think: bool = False
     debug: bool = False
 
 
